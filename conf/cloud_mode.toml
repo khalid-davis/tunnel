@@ -1,0 +1,23 @@
+
+[mode]
+	[mode.cloud]
+		[mode.cloud.stream]
+			[mode.cloud.stream.server]
+				grpcport = 9000
+				logport = 8000
+                channelzaddr = "0.0.0.0:6000"
+				key = "./conf/certs/cloud.key"
+				cert = "./conf/certs/cloud.crt"
+				tokenfile = "./conf/token"
+			[mode.cloud.stream.dns]
+				configmap= "proxy-nodes"
+				hosts = "/etc/superedge/proxy/nodes/hosts"
+				service = "proxy-cloud-public"
+				debug = true
+            [mode.cloud.tcp]
+                "0.0.0.0:6443" = "127.0.0.1:6443"
+            [mode.cloud.https]
+                cert ="./conf/certs/kubelet.crt"#kubelet的服务端证书
+                key = "./conf/certs/kubelet.key"
+			[mode.cloud.https.addr]
+				"10250" = "101.206.162.213:10250"

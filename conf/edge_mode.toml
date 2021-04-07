@@ -1,0 +1,14 @@
+
+[mode]
+	[mode.edge]
+		[mode.edge.stream]
+			[mode.edge.stream.client]
+				token = "6ff2a1ea0f1611eb9896362096106d9d"
+				cert = "./conf/certs/ca.crt"
+  				dns = "localhost"
+				servername = "localhost:9000"
+				logport = 7000
+				channelzaddr = "0.0.0.0:5000"
+			[mode.edge.https]
+				cert= "./conf/certs/kubelet-client.crt"#apiserver访问kubelet的客户端证书
+				key= "./conf/certs/kubelet-client.key"
