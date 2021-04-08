@@ -15,7 +15,7 @@
 				service = "proxy-cloud-public"
 				debug = true
             [mode.cloud.tcp]
-                "0.0.0.0:6443" = "127.0.0.1:6443"
+                "0.0.0.0:6442" = "127.0.0.1:6443"
             [mode.cloud.https]
                 cert ="./conf/certs/kubelet.crt"#kubelet的服务端证书
                 key = "./conf/certs/kubelet.key"

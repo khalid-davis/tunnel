@@ -27,9 +27,16 @@ const (
 )
 
 const (
+	UDP_FRONTEND = "frontend"
+	UDP_BACKEND = "backend"
+	UDP_CONTROL = "control"
+)
+
+const (
 	STREAM = "stream"
 	TCP    = "tcp"
 	HTTPS  = "https"
+	UDP = "udp"
 )
 
 const (
