@@ -1,6 +1,7 @@
 package udpmng
 
 import (
+	"fmt"
 	"github.com/superedge/superedge/pkg/tunnel/context"
 	"github.com/superedge/superedge/pkg/tunnel/proto"
 	"github.com/superedge/superedge/pkg/tunnel/util"
@@ -51,6 +52,7 @@ func (udp *UDPConn) Write() {
 				break
 			}
 			var err error
+			// 通过DialUDP方式创建的UDP是已连接的，请示会记录remote的信息，而服务端通过 listenUDP创建的连接是未连接的，在发送和请示数据时需要填充remote信息
 			if udp.role == "server" {
 				// 回写
 				_, err = udp.Conn.WriteToUDP(msg.Data, udp.SourceAddr)
@@ -90,15 +92,21 @@ func (udp *UDPConn) Read() {
 				}
 			}
 			buf := make([]byte, size)
-			n, addr, err := udp.Conn.ReadFromUDP(buf)
+			var n int
+			var err error
+			if udp.role == "server" {
+				var addr *net.UDPAddr
+				n, addr, err = udp.Conn.ReadFromUDP(buf)
+				udp.SourceAddr = addr
+			} else {
+				n, err = udp.Conn.Read(buf)
+			}
 			if err != nil {
 				klog.Errorf("read udp failed, err = %s ", err)
 				udp.cleanUp()
 				break
 			}
-			if udp.role == "server" {
-				udp.SourceAddr = addr
-			}
+			fmt.Println("data: ", string(buf))
 			udp.n.Send2Node(&proto.StreamMsg{
 				Node:     udp.n.GetName(),
 				Category: util.UDP,

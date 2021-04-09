@@ -43,6 +43,7 @@ func (udp *UDPProxy) Start(mode string) {
 				defer ln.Close()
 				klog.Infof("the udp server of the cloud tunnel listen on %s\n", front)
 				// 这里会不会有问题，消息怎么分别，在tcp里面每个请示会有一个conn，但是在这个里面呢？，UDP并没有Accept函数
+				// 后面设计的时候需要把readFromUDP那里得到的addr直接放到一个新的协程里面去处理并等待响应，因为客户端的回写地址是不一样的，要做响应分发的
 				var node string
 				for {
 					nodes := context.GetContext().GetNodes()
