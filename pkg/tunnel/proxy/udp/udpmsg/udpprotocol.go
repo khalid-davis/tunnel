@@ -28,7 +28,7 @@ func FrontendHandler(msg *proto.StreamMsg) error {
 		c.Send2Conn(msg)
 		return nil
 	}
-	udp := udpmng.NewUDPConn(msg.Topic, msg.Addr, msg.Node, "agent")
+	udp := udpmng.NewUDPConn(msg.Topic, msg.Addr, msg.Node)
 	udp.Type = util.UDP_BACKEND
 	udp.C.Send2Conn(msg)
 	udpAddr, err := net.ResolveUDPAddr("udp", udp.FinalAddr)

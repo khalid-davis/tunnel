@@ -2,7 +2,6 @@ package udp
 
 import (
 	uuid "github.com/satori/go.uuid"
-	"github.com/superedge/superedge/pkg/tunnel/conf"
 	"github.com/superedge/superedge/pkg/tunnel/context"
 	"github.com/superedge/superedge/pkg/tunnel/model"
 	"github.com/superedge/superedge/pkg/tunnel/proxy/udp/udpmng"
@@ -30,41 +29,45 @@ func (udp *UDPProxy) Start(mode string) {
 	// agent处理函数
 	context.GetContext().RegisterHandler(util.UDP_FRONTEND, udp.Name(), udpmsg.FrontendHandler)
 	context.GetContext().RegisterHandler(util.UDP_CONTROL, udp.Name(), udpmsg.ControlHandler)
-	if mode == util.CLOUD {
-		// 先直接利用这个tcp字段
-		for front, backend := range conf.TunnelConf.TunnlMode.Cloud.Tcp {
-			go func(front, backend string) {
-				udpAddr, err := net.ResolveUDPAddr("udp", front)
-				ln, err := net.ListenUDP("udp", udpAddr)
-				if err != nil {
-					klog.Errorf("cloud proxy start %s fail ,error = %s", front, err)
-					return
-				}
-				defer ln.Close()
-				klog.Infof("the udp server of the cloud tunnel listen on %s\n", front)
-				// 这里会不会有问题，消息怎么分别，在tcp里面每个请示会有一个conn，但是在这个里面呢？，UDP并没有Accept函数
-				// 后面设计的时候需要把readFromUDP那里得到的addr直接放到一个新的协程里面去处理并等待响应，因为客户端的回写地址是不一样的，要做响应分发的
-				var node string
-				for {
-					nodes := context.GetContext().GetNodes()
-					if len(nodes) == 0 {
-						klog.Errorf("len(nodes)==0")
-						time.Sleep(5 * time.Second)
-						continue
-					}
-					node = nodes[0]
-					break
-				}
-				uuid := uuid.NewV4().String()
-				fp := udpmng.NewUDPConn(uuid, backend, node, "server")
-				fp.Conn = ln
-				fp.Type = util.UDP_FRONTEND
-				go fp.Write()
-				go fp.Read()
-				<-fp.StopChan
-			}(front, backend)
+	// cloud
+	//front := "127.0.0.1:6442"
+	//backend := "192.168.0.98:8285"
+	//backend := "127.0.0.1:8286"
+	// edge
+	front := "127.0.0.1:6443"
+	//backend := "192.168.0.226:8285"
+	backend := "127.0.0.1:8285"
+	go func(front, backend string) {
+		udpAddr, err := net.ResolveUDPAddr("udp", front)
+		ln, err := net.ListenUDP("udp", udpAddr)
+		if err != nil {
+			klog.Errorf("cloud proxy start %s fail ,error = %s", front, err)
+			return
 		}
-	}
+		defer ln.Close()
+		klog.Infof("the udp server of the cloud tunnel listen on %s\n", front)
+		// 这里会不会有问题，消息怎么分别，在tcp里面每个请示会有一个conn，但是在这个里面呢？，UDP并没有Accept函数
+		// 后面设计的时候需要把readFromUDP那里得到的addr直接放到一个新的协程里面去处理并等待响应，因为客户端的回写地址是不一样的，要做响应分发的
+		var node string
+		for {
+			nodes := context.GetContext().GetNodes()
+			if len(nodes) == 0 {
+				klog.Errorf("len(nodes)==0")
+				time.Sleep(5 * time.Second)
+				continue
+			}
+			node = nodes[0]
+			break
+		}
+		klog.Infof("nodeName: ", node)
+		uuid := uuid.NewV4().String()
+		fp := udpmng.NewUDPConn(uuid, backend, node)
+		fp.Conn = ln
+		fp.Type = util.UDP_FRONTEND
+		go fp.Write()
+		go fp.Read()
+		<-fp.StopChan
+	}(front, backend)
 }
 
 func (udp *UDPProxy) CleanUp() {

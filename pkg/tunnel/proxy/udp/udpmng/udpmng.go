@@ -24,13 +24,13 @@ type UDPConn struct {
 	once       sync.Once
 }
 
-func NewUDPConn(uuid, addr, node, role string) *UDPConn {
+func NewUDPConn(uuid, addr, node string) *UDPConn {
 	udp := &UDPConn{
 		uid:       uuid,
 		StopChan:  make(chan struct{}, 1),
 		C:         context.GetContext().AddConn(uuid),
 		FinalAddr: addr,
-		role:      role,
+		role:      "",
 	}
 
 	if nd := context.GetContext().GetNode(node); nd != nil {
@@ -53,12 +53,10 @@ func (udp *UDPConn) Write() {
 			}
 			var err error
 			// 通过DialUDP方式创建的UDP是已连接的，请示会记录remote的信息，而服务端通过 listenUDP创建的连接是未连接的，在发送和请示数据时需要填充remote信息
-			if udp.role == "server" {
-				// 回写
-				_, err = udp.Conn.WriteToUDP(msg.Data, udp.SourceAddr)
-			} else {
-				_, err = udp.Conn.Write(msg.Data)
-			}
+			// 没有使用dialUDP的话，只能使用sourceAddr
+			// 对吗？
+			// 这里使用Write是因为我们在前面已经建立了连接，使用listen的话，其实回写是已经建立的那个
+			_, err = udp.Conn.Write(msg.Data)
 			if err != nil {
 				klog.Errorf("write conn fail err = %v", err)
 				udp.cleanUp()
@@ -94,13 +92,9 @@ func (udp *UDPConn) Read() {
 			buf := make([]byte, size)
 			var n int
 			var err error
-			if udp.role == "server" {
-				var addr *net.UDPAddr
-				n, addr, err = udp.Conn.ReadFromUDP(buf)
-				udp.SourceAddr = addr
-			} else {
-				n, err = udp.Conn.Read(buf)
-			}
+			var addr *net.UDPAddr
+			n, addr, err = udp.Conn.ReadFromUDP(buf)
+			udp.SourceAddr = addr
 			if err != nil {
 				klog.Errorf("read udp failed, err = %s ", err)
 				udp.cleanUp()
