@@ -42,7 +42,8 @@ func FrontendHandler(msg *proto.StreamMsg) error {
 		return err
 	}
 	udp.Conn = conn
-	go udp.Read()
+	//go udp.Read()
+	// 这里专门负责把接收的消息写入到本机的UDP服务就可以了
 	go udp.Write()
 	return nil
 }

@@ -64,7 +64,9 @@ func (udp *UDPProxy) Start(mode string) {
 		fp := udpmng.NewUDPConn(uuid, backend, node)
 		fp.Conn = ln
 		fp.Type = util.UDP_FRONTEND
-		go fp.Write()
+		// 在这种模式下面，是不需要监听响应的，响应是以同样的方式，对方为client，自己为server进行返回的
+		// 这里只需要做单边就可以了，专门负责监听代理到的消息并把消息通过grpc传送到对端。与FrontendHandler配套使用
+		//go fp.Write()
 		go fp.Read()
 		<-fp.StopChan
 	}(front, backend)
