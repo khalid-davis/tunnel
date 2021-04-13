@@ -30,10 +30,13 @@ func (udp *UDPProxy) Start(mode string) {
 	context.GetContext().RegisterHandler(util.UDP_FRONTEND, udp.Name(), udpmsg.FrontendHandler)
 	context.GetContext().RegisterHandler(util.UDP_CONTROL, udp.Name(), udpmsg.ControlHandler)
 	// cloud
+	// 在linux跨节点的时候要使用0.0.0.0，不能使用127
+	//front := "0.0.0.0:6442"
 	//front := "127.0.0.1:6442"
 	//backend := "192.168.0.98:8285"
 	//backend := "127.0.0.1:8286"
 	// edge
+	//front := "0.0.0.0:6443"
 	front := "127.0.0.1:6443"
 	//backend := "192.168.0.226:8285"
 	backend := "127.0.0.1:8285"
